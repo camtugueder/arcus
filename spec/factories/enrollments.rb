@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :enrollment do
-    course_id { 1 }
-    student_id { 1 }
+    association :course
+    association :user, factory: :user
   end
 end

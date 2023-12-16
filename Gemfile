@@ -23,6 +23,8 @@ group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
   gem 'factory_bot_rails', '6.1.0'
   gem 'rspec-rails', '4.0.1'
+  # Dotenv gem for managing environment variables
+  gem 'dotenv-rails'
 end
 
 
@@ -38,8 +40,14 @@ group :test do
   gem 'rspec-json_expectations', '~> 2.2'
   gem 'simplecov', require: false
   gem 'webmock', '3.8.3'
+  gem 'shoulda-matchers', '~> 4.0'
 end
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 gem 'kaminari'
+
+gem 'devise'
+gem 'devise-jwt'
+gem 'rolify'
+gem 'pundit'

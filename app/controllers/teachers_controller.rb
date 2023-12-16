@@ -1,31 +1,52 @@
 class TeachersController < ApplicationController
+  before_action :set_teacher, only: [:show, :update, :destroy]
+  before_action :authorize_teacher
+
   def index
-    @teachers = Teacher.order(:created_at)
+    @teachers = User.with_role(:teacher).order(:created_at)
   end
 
   def show
-    @teacher = Teacher.find(params[:id])
   end
 
   def create
-    @teacher = Teacher.new(teacher_params)
+    @teacher = User.new(teacher_params)
+    @teacher.add_role(:teacher)
 
-    process_and_render_response(@teacher) { |teacher| teacher.save }
+    if @teacher.save
+      render :show, status: :created
+    else
+      render json: @teacher.errors, status: :unprocessable_entity
+    end
   end
 
   def update
-    @teacher = Teacher.find(params[:id])
-
-    process_and_render_response(@teacher) { |teacher| teacher.update(teacher_params) }
+    if @teacher.update(teacher_params)
+      render :show
+    else
+      render json: @teacher.errors, status: :unprocessable_entity
+    end
   end
 
   def destroy
-    @teacher = Teacher.find(params[:id])
-    @teacher.destroy
-    process_and_render_response(@teacher) { |teacher| teacher.destroy }
+    if @teacher.destroy
+      render json: { success: 'Teacher deleted successfully!' }, status: :ok
+    else
+      render json: { error: "Teacher could not be deleted" }, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def authorize_teacher
+    authorize Teacher
+  end
+
+  def set_teacher
+    @teacher = User.with_role(:teacher).find(params[:id])
   end
 
   def teacher_params
-    params.require(:teacher).permit(:name)
+    params.require(:teacher).permit(:name, :email, :password, :password_confirmation)
   end
 end

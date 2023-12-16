@@ -1,31 +1,52 @@
 class StudentsController < ApplicationController
+  before_action :set_student, only: [:show, :update, :destroy]
+  before_action :authorize_student
+
   def index
-    @students = Student.order(:created_at).page(params[:page]).per(params[:per_page] || 10)
+    @students = User.with_role(:student).order(:created_at).page(params[:page]).per(params[:per_page] || 10)
   end
 
   def show
-    @student = Student.find(params[:id])
   end
 
   def create
-    @student = Student.new(student_params)
+    @student = User.new(student_params)
+    @student.add_role(:student)
 
-    process_and_render_response(@student) { |student| student.save }
+    if @student.save
+      render :show, status: :created, location: @student
+    else
+      render json: @student.errors, status: :unprocessable_entity
+    end
   end
 
   def update
-    @student = student.find(params[:id])
-
-    process_and_render_response(@student){ |student| student.update(student_params) }
+    if @student.update(student_params)
+      render :show, status: :ok, location: @student
+    else
+      render json: @student.errors, status: :unprocessable_entity
+    end
   end
 
   def destroy
-    @student = Student.find(params[:id])
+    if @student.destroy
+      render json: { success: 'Student deleted successfully!' }, status: :ok
+    else
+      render json: @student.errors, status: :unprocessable_entity
+    end
+  end
 
-    process_and_render_response(@student){ |student| student.destroy }
+  private
+
+  def authorize_student
+    authorize Student
+  end
+
+  def set_student
+    @student = User.with_role(:student).find(params[:id])
   end
 
   def student_params
-    params.require(:student).permit(:name, :email)
+    params.require(:student).permit(:name, :email, :password, :password_confirmation)
   end
 end

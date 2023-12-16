@@ -1,42 +1,28 @@
 class ApplicationController < ActionController::API
   include ActionController::HttpAuthentication::Token::ControllerMethods
+  include Pundit::Authorization
+  before_action :authenticate_user!
+  after_action :verify_authorized
 
-  before_action :authenticate_token!
-  helper_method :current_user
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from StandardError, with: :internal_server_error
 
-  def current_user
-    Student.find_by!(token: session[:current_user_token])
+  def not_found
+    render json: { error: "Not found" }, status: :not_found
   end
 
   private
 
-  def authenticate_user!
-    (current_user or render_unauthorized)
+  def record_not_found(exception)
+    render json: { error: exception.message }, status: :not_found
   end
 
-  def authenticate_token!
-    render_unauthorized if !request.headers['Authorization'].present?
-    authenticate_with_http_token do |token, options|
-      return render_unauthorized if token.nil?
-      student = Student.find_by(token: token)
-      return render_unauthorized if student.nil?
-      session[:current_user_token] = student.token
-    end
+  def internal_server_error(exception)
+    render json: { error: exception.message }, status: :internal_server_error
   end
 
-  rescue_from ActiveRecord::RecordNotFound do |exception|
-    render json: exception.message.to_json, status: :not_found
-  end
-
-  def render_unauthorized
-    render json: { message: 'Bad credentials' }, status: :unauthorized
-  end
-
-  def process_and_render_response(resource)
-    if yield resource
-      render json: resource, status: :ok
-    else
-      render json: resource.errors, status: :unprocessable_entity
-    end
+  def user_not_authorized
+    render json: { error: 'You are not authorized to perform this action.' }, status: :forbidden
   end
 end
