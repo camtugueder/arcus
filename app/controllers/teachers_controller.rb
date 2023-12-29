@@ -39,7 +39,11 @@ class TeachersController < ApplicationController
   private
 
   def authorize_teacher
-    authorize Teacher
+    if @teacher
+      authorize @teacher, policy_class: TeacherPolicy
+    else
+      authorize :teacher, policy_class: TeacherPolicy
+    end
   end
 
   def set_teacher

@@ -39,7 +39,11 @@ class CoursesController < ApplicationController
   private
 
   def authorize_course
-    authorize Course
+    if @course
+      authorize @course
+    else
+      authorize Course
+    end
   end
   def set_course
     @course = Course.find(params[:id])

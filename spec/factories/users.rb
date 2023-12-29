@@ -13,5 +13,9 @@ FactoryBot.define do
     trait :student do
       after(:create) { |user| user.add_role(:student) }
     end
+
+    trait :admin do
+      after(:create) { |user| user.add_role(:admin)}
+    end
   end
 end

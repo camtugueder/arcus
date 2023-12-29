@@ -4,9 +4,9 @@ class ApplicationController < ActionController::API
   before_action :authenticate_user!
   after_action :verify_authorized
 
-  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
-  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
-  rescue_from StandardError, with: :internal_server_error
+  rescue_from ActiveRecord::RecordNotFound,
+              Pundit::NotAuthorizedError,
+              StandardError, with: :handle_exceptions
 
   def not_found
     render json: { error: "Not found" }, status: :not_found
@@ -14,15 +14,18 @@ class ApplicationController < ActionController::API
 
   private
 
-  def record_not_found(exception)
-    render json: { error: exception.message }, status: :not_found
+  def handle_exceptions(exception)
+    case exception
+    when ActiveRecord::RecordNotFound
+      error_response(exception.message, :not_found)
+    when Pundit::NotAuthorizedError
+      error_response('You are not authorized to perform this action.', :forbidden)
+    else
+      error_response(exception.message, :internal_server_error)
+    end
   end
 
-  def internal_server_error(exception)
-    render json: { error: exception.message }, status: :internal_server_error
-  end
-
-  def user_not_authorized
-    render json: { error: 'You are not authorized to perform this action.' }, status: :forbidden
+  def error_response(message, status)
+    render json: { error: message }, status: status unless performed?
   end
 end

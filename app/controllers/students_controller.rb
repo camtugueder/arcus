@@ -12,9 +12,8 @@ class StudentsController < ApplicationController
   def create
     @student = User.new(student_params)
     @student.add_role(:student)
-
     if @student.save
-      render :show, status: :created, location: @student
+      render :show, status: :created, location: student_url(@student)
     else
       render json: @student.errors, status: :unprocessable_entity
     end
@@ -22,7 +21,7 @@ class StudentsController < ApplicationController
 
   def update
     if @student.update(student_params)
-      render :show, status: :ok, location: @student
+      render :show, status: :ok, location: student_url(@student)
     else
       render json: @student.errors, status: :unprocessable_entity
     end
@@ -39,7 +38,11 @@ class StudentsController < ApplicationController
   private
 
   def authorize_student
-    authorize Student
+    if @student
+      authorize @student, policy_class: StudentPolicy
+    else
+      authorize :student, policy_class: StudentPolicy
+    end
   end
 
   def set_student

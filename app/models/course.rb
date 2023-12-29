@@ -3,5 +3,5 @@ class Course < ApplicationRecord
   has_many :enrollments, dependent: :destroy
   has_many :students, through: :enrollments, source: :user
 
-  validates_presence_of :teacher
+  validates :teacher_id, presence: true
 end

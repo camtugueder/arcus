@@ -8,6 +8,6 @@ RSpec.describe Course, type: :model do
   end
 
   describe 'validations' do
-    it { should validate_presence_of(:teacher) }
+    it { should validate_presence_of(:teacher_id) }
   end
 end

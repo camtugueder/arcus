@@ -1,27 +1,28 @@
 require 'rails_helper'
 
 RSpec.describe EnrollmentPolicy, type: :policy do
-  let(:user) { User.new }
+  let(:student) { create(:user, :student) }
+  let(:teacher) { create(:user, :teacher) }
+  let(:admin) { create(:user, :admin) }
+  let(:other_user) { create(:user) }  # A user with no specific role
 
   subject { described_class }
 
-  permissions ".scope" do
-    pending "add some examples to (or delete) #{__FILE__}"
-  end
-
-  permissions :show? do
-    pending "add some examples to (or delete) #{__FILE__}"
-  end
-
   permissions :create? do
-    pending "add some examples to (or delete) #{__FILE__}"
-  end
+    it 'allows students' do
+      expect(EnrollmentPolicy).to permit(student)
+    end
 
-  permissions :update? do
-    pending "add some examples to (or delete) #{__FILE__}"
-  end
+    it 'denies teachers' do
+      expect(EnrollmentPolicy).not_to permit(teacher)
+    end
 
-  permissions :destroy? do
-    pending "add some examples to (or delete) #{__FILE__}"
+    it 'denies admins' do
+      expect(EnrollmentPolicy).not_to permit(admin)
+    end
+
+    it 'denies users with no specific role' do
+      expect(EnrollmentPolicy).not_to permit(other_user)
+    end
   end
 end
